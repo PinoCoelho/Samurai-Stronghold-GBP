@@ -60,8 +60,7 @@ std::vector<AlgoritmoGenético> Selection(const std::vector<AlgoritmoGenético>&
 //Algoritmo para el cruce de samuráis
 AlgoritmoGenético Crossover(const AlgoritmoGenético& parent1, const AlgoritmoGenético& parent2) {
     AlgoritmoGenético child;
-    
-    child.id = 
+     
     child.age = (parent1.age + parent2.age) / 2;
     child.survivalProbability = (parent1.survivalProbability + parent2.survivalProbability) / 2;
     child.expectedGenerations = (parent1.expectedGenerations + parent2.expectedGenerations) - 1;
@@ -99,6 +98,7 @@ void MutateChildren(std::vector<AlgoritmoGenético>& children) {
         Mutacion(child);
     }
 }
+//Función que almacena el promedio de resistencia de la primera población
 int avance1(const std::vector<AlgoritmoGenético>& samurais){
     std::vector<double> resistenciaSamurais;
     for(const AlgoritmoGenético& samurai : samurais) {
@@ -108,6 +108,7 @@ int avance1(const std::vector<AlgoritmoGenético>& samurais){
     double promedioResistenciaSamurais = std::accumulate(resistenciaSamurais.begin(), resistenciaSamurais.end(), 0.0) / resistenciaSamurais.size();
     std::cout << "Promedio Resistencia Samurais: " << promedioResistenciaSamurais << std::endl;
 }
+//Función que almacena el promedio de resistencia de la población de hijos
 int avance2(const std::vector<AlgoritmoGenético>& children) {
     std::vector<double> resistenciaNinos;
     for(const AlgoritmoGenético& nino : children) {
@@ -117,17 +118,33 @@ int avance2(const std::vector<AlgoritmoGenético>& children) {
     double promedioResistenciaNinos = std::accumulate(resistenciaNinos.begin(), resistenciaNinos.end(), 0.0) / resistenciaNinos.size();
     std::cout << "Promedio Resistencia Niños: " << promedioResistenciaNinos << std::endl;
 }
+int elegido(const std::vector<AlgoritmoGenético>& children) {
+    if(!children.empty()) {
+        AlgoritmoGenético ResistenciaMayor = children[0];
+
+        for(const AlgoritmoGenético& nino : children) {
+            if(nino.endurance > ResistenciaMayor.endurance) {
+                ResistenciaMayor = nino;
+            }
+        }
+        std::cout << "Samurai con mayor resistencia: ID "
+        << ResistenciaMayor.id << " - Resistencia: " 
+        << ResistenciaMayor.endurance <<std::endl;
+    } else {
+        std::cout << "La lista de niños está vacía." << std::endl;
+    }
+}
 //Función para generar la nueva generación
-int cruce(){
+int cruce(int x){
+    int populationSize = x;
     AlgoritmoGenético parent1;
     AlgoritmoGenético parent2;
-    int populationSize = 5;
     std::vector<AlgoritmoGenético> population = InitializePopulation(populationSize);
     std::vector<AlgoritmoGenético> selectedPopulation = Selection(population);
     std::vector<AlgoritmoGenético> offspring;
     int maxID = -1;
 
-    for (const AlgoritmoGenético& samurai : selectedPopulation) {
+    for (const AlgoritmoGenético& samurai : population) {
         if(samurai.id > maxID) {
             maxID = samurai.id;
         }
@@ -174,6 +191,7 @@ int cruce(){
     }
     avance1(population);
     avance2(offspring);
+    elegido(offspring);
 }
 
 int main() {
@@ -207,5 +225,5 @@ int main() {
         << samurai.lowerBodyStrength << " - Resistance: " 
         << samurai.endurance << std::endl;
     }
-    cruce();
+    cruce(populationSize);
 }
