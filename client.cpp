@@ -43,9 +43,9 @@ Client::Client(QObject *parent) : QObject(parent)
     window->layout()->setMenuBar(toolBar);
 
     // Add buttons to the toolbar
-    QAction *button1 = toolBar->addAction("Samurai");
+    QAction *button1 = toolBar->addAction("Obstaculos");
     QAction *button2 = toolBar->addAction("Statistics");
-    QAction *button3 = toolBar->addAction("Button 3");
+    QAction *button3 = toolBar->addAction("Start");
 
     connect(button1, &QAction::triggered, this, &Client::handleButton1Click);
     connect(button2, &QAction::triggered, this, &Client::handleButton2Click);
@@ -59,6 +59,14 @@ Client::Client(QObject *parent) : QObject(parent)
 
     // Raise the lifeLabel to the top layer
     lifeLabel->raise();
+
+    koban = new QLabel("Koban: 100", window);
+    koban ->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    koban ->setStyleSheet("background-color: transparent; border: 1px solid black; padding: 5px;");
+    window->layout()->addWidget(koban);
+
+    // Raise the lifeLabel to the top layer
+    koban->raise();
 
     window->show();
 }
@@ -137,8 +145,12 @@ void Client::placePlayerSquares()
     // Cambia la declaración en client.cpp de std::pair a booleano
     bool occupiedPositions[10][10];
 
-
     for (int i = 0; i < 3; ++i) {
+        if (score <= 0) {
+            qDebug() << "Puntaje agotado, no se pueden colocar más obstáculos.";
+            break;
+        }
+
         QString color;
         bool validPlacement = false;
         int row, col;
@@ -197,11 +209,16 @@ void Client::placeSquare(const QString &color, int row, int col)
 {
     if (color.toLower() == "blue") {
         setGridValue(row, col, 1); // Azul
+        score -= 20; // Resta 20 puntos por cuadro azul
     } else if (color.toLower() == "red") {
         setGridValue(row, col, 2); // Rojo
+        score -= 20; // Resta 20 puntos por cuadro rojo
     } else if (color.toLower() == "yellow") {
         setGridValue(row, col, 3); // Amarillo
+        score -= 20; // Resta 20 puntos por cuadro amarillo
     }
+
+    koban->setText("Koban: " + QString::number(score));
 }
 
 bool Client::isValid(int row, int col) const
@@ -228,6 +245,9 @@ void Client::moveToGoal()
         QMessageBox::information(nullptr, "Game Over", "Your life reached zero. Game over!");
     }
 
+    score += 10; // Suma 10 puntos por cada celda movida
+    koban->setText("Koban: " + QString::number(score));
+
     greenMoves++;
 
     if (greenMoves % 3 == 0) {
@@ -246,6 +266,9 @@ void Client::findShortestPath()
 
     // Inicializa un contador para el movimiento del cuadro verde
     int greenMoves = 0;
+
+    score += 50 ;
+    koban->setText("Koban: " + QString::number(score));
 
     // Bucle principal para controlar el movimiento del cuadro verde
     while (greenRow != 0 || greenCol != 0) {
@@ -380,7 +403,7 @@ void Client::moveRandomSquares()
             randomRow = QRandomGenerator::global()->bounded(10);
             randomCol = QRandomGenerator::global()->bounded(10);
         } while (std::find(occupiedPositions.begin(), occupiedPositions.end(), std::make_pair(randomRow, randomCol)) != occupiedPositions.end() ||
-                 (randomRow == currentRow && randomCol == currentCol)); // Evita colocar cuadros en la posición del cuadro verde
+                 (randomRow == currentRow && randomCol == currentCol) || isGreenSquare(randomRow, randomCol)); // Evita colocar cuadros en la posición del cuadro verde o en una celda con cuadro verde
 
         QString color;
         bool validPlacement = false;
@@ -398,10 +421,16 @@ void Client::moveRandomSquares()
 
             if (color.toLower() == "blue") {
                 setGridValue(randomRow, randomCol, 1); // Azul
+                score -= 20;
+                koban->setText("Koban: " + QString::number(score));
             } else if (color.toLower() == "red") {
                 setGridValue(randomRow, randomCol, 2); // Rojo
+                score -= 30;
+                koban->setText("Koban: " + QString::number(score));
             } else if (color.toLower() == "yellow") {
                 setGridValue(randomRow, randomCol, 3); // Amarillo
+                score -= 25;
+                koban->setText("Koban: " + QString::number(score));
             }
 
             occupiedPositions.push_back({randomRow, randomCol});
@@ -409,6 +438,13 @@ void Client::moveRandomSquares()
         }
     }
 }
+
+bool Client::isGreenSquare(int row, int col)
+{
+    // Verificar si la casilla en (row, col) es un cuadrado verde.
+    return labels[row][col]->styleSheet() == "background-color: green; border: 1px solid black;";
+}
+
 
 
 bool Client::isColoredSquare(int row, int col)

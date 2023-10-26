@@ -30,6 +30,7 @@ private slots:
     bool isRedSquare(int row, int col);
     bool isYellowSquare(int row, int col);
     bool isBlueSquare(int row, int col);
+    bool isGreenSquare(int row, int col);
     //void updateLifeLabel(int life);
     bool isNearColoredSquare(int row, int col);
     void placePlayerSquares();
@@ -56,6 +57,8 @@ private:
     int randomIndex;
     int greenMoves;
     bool occupiedPositions[10][10];
+    QLabel *koban;
+    int score = 100;
 
 
 };
