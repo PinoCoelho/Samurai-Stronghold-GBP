@@ -1,7 +1,32 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cstdlib>
 #include <ctime>
+#include "gnuplot-iostream.h"
+
+
+int main(){
+    Gnuplot gp;
+    // Datos de ejemplo
+    std::vector<int> generaciones = {1, 2, 3, 4, 5};
+    std::vector<double> mejorAptitud = {90, 92, 95, 97, 99};
+    std::vector<double> aptitudMedia = {80, 85, 90, 93, 96};
+
+    gp << "set title 'Avance Generacional'" << std::endl;
+    gp << "set xlabel 'Generación'" << std::endl;
+    gp << "set ylabel 'Aptitud'" << std::endl;
+    gp << "plot '-' with lines title 'Mejor Aptitud', '-' with lines title 'Aptitud Media'" << std::endl;
+    gp.send1d(std::make_tuple(generaciones, mejorAptitud));
+    gp.send1d(std::make_tuple(generaciones, aptitudMedia));
+
+    // Espera hasta que el usuario cierre la ventana del gráfico
+    std::cout << "Presiona enter para salir..." << std::endl;
+    std::cin.get();
+
+    return 0;
+}
+
 
 struct AlgoritmoGenético
 {
@@ -75,7 +100,7 @@ AlgoritmoGenético Crossover(const AlgoritmoGenético& parent1, const AlgoritmoG
 }
 
 void Mutacion(AlgoritmoGenético& samurai) {
-    double mutationRate = 100;
+    double mutationRate = 0.1;
 
     double random = static_cast<double>(std::rand()) / RAND_MAX;
 
