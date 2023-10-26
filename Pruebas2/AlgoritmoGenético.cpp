@@ -42,12 +42,47 @@ std::vector<AlgoritmoGenético> InitializePopulation(int populationSize){
     return population;
 }
 
+std::vector<AlgoritmoGenético> Selection(const std::vector<AlgoritmoGenético>& population) {
+    std::vector<AlgoritmoGenético> selectedSamurais;
+
+    for(const AlgoritmoGenético& samurai : population) {
+        if(samurai.endurance >= 100) {
+            selectedSamurais.push_back(samurai);
+        }
+    }
+
+    return selectedSamurais;
+}
+
 int main() {
-    int populationSize = 10;
+    int populationSize = 5;
 
     std::vector<AlgoritmoGenético> population = InitializePopulation(populationSize);
 
     for(const AlgoritmoGenético& samurai : population) {
-        std::cout << "Samurai " << samurai.id << " - Edad: " << samurai.age << " - SP: " << samurai.survivalProbability << " - EG: " << samurai.expectedGenerations << " - EI: " << samurai.emotionalIntelligence << " - PC" << samurai.physicalCondition << " - U: " << samurai.upperBodyStrength << " - L" << samurai.lowerBodyStrength << " - Resistance: " << samurai.endurance << std::endl;
+        std::cout << "Samurai " 
+        << samurai.id << " - Edad: " 
+        << samurai.age << " - SP: " 
+        << samurai.survivalProbability << " - EG: " 
+        << samurai.expectedGenerations << " - EI: " 
+        << samurai.emotionalIntelligence << " - PC: " 
+        << samurai.physicalCondition << " - U: " 
+        << samurai.upperBodyStrength << " - L: " 
+        << samurai.lowerBodyStrength << " - Resistance: " 
+        << samurai.endurance << std::endl;
+    }
+    std::vector<AlgoritmoGenético> selectedPopulation = Selection(population);
+    std::cout << "Samurais seleccionados:" << std::endl;
+    for (const AlgoritmoGenético& samurai : selectedPopulation) {
+        std::cout << "Samurai " 
+        << samurai.id << " - Edad: " 
+        << samurai.age << " - SP: " 
+        << samurai.survivalProbability << " - EG: " 
+        << samurai.expectedGenerations << " - EI: " 
+        << samurai.emotionalIntelligence << " - PC: " 
+        << samurai.physicalCondition << " - U: " 
+        << samurai.upperBodyStrength << " - L: " 
+        << samurai.lowerBodyStrength << " - Resistance: " 
+        << samurai.endurance << std::endl;
     }
 }
