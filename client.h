@@ -23,7 +23,7 @@ public:
 
 private slots:
     void receiveGridData();
-    void placeRandomSquare(const QString &color, const std::vector<std::pair<int, int>>& occupiedPositions);
+    //void placeRandomSquare(const QString &color, const std::vector<std::pair<int, int>>& occupiedPositions);
     void findShortestPath();
     bool isValid(int row, int col) const;
     bool isNearObstacle(int row, int col);
@@ -32,6 +32,12 @@ private slots:
     bool isBlueSquare(int row, int col);
     //void updateLifeLabel(int life);
     bool isNearColoredSquare(int row, int col);
+    void placePlayerSquares();
+    void placeSquare(const QString &color, int row, int col);
+    void clearGrid();
+    //void startGreenSquareMovement();
+    //bool isNearPlayerSquare(int row, int col);
+    void moveToGoal();
 
 private:
     QTcpSocket *tcpSocket;
@@ -41,6 +47,10 @@ private:
     int currentCol;
     bool obstacles[10][10];
     QLabel *lifeLabel;
+    int goalRow;
+    int goalCol;
+    int life;
+    QTimer *timer;
 
 };
 

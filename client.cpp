@@ -1,12 +1,14 @@
+// client.cpp
 #include "client.h"
 #include <QDebug>
 #include <QToolBar>
 #include <QAction>
-#include <QTimer>
-#include <QEventLoop>
 #include <QRandomGenerator>
 #include <queue>
 #include <QCoreApplication>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QTimer>
 
 Client::Client(QObject *parent) : QObject(parent)
 {
@@ -93,50 +95,111 @@ void Client::setGridValue(int row, int col, int value)
     }
 }
 
+void Client::clearGrid()
+{
+    for (int row = 0; row < 10; ++row) {
+        for (int col = 0; col < 10; ++col) {
+            setGridValue(row, col, 0); // Esto establecerá todas las casillas en blanco
+        }
+    }
+}
+
 void Client::handleButton1Click()
 {
+    // Limpiar el tablero antes de iniciar
+    clearGrid();
+
     // Inicializar la posición actual en (9,9)
     currentRow = 9;
     currentCol = 9;
 
-    // Colocar cuadros aleatorios en el mapa, asegurándose de que no estén en (0,0) y (9,9)
-    std::vector<std::pair<int, int>> occupiedPositions;
-    occupiedPositions.push_back({0, 0}); // Inicial
-    occupiedPositions.push_back({9, 9}); // Salida
-    placeRandomSquare("blue", occupiedPositions);
-    placeRandomSquare("red", occupiedPositions);
-    placeRandomSquare("yellow", occupiedPositions);
+    // Permitir que el jugador coloque los cuadrados a su elección
+    placePlayerSquares();
 
     // Llamar a la función de camino más corto para mover el cuadrado verde de (9,9) a (0,0)
-    findShortestPath();  // Iniciar desde (9,9) y llegar a (0,0)
+    //findShortestPath();  // Iniciar desde (9,9) y llegar a (0,0)
 }
 
-
-void Client::placeRandomSquare(const QString &color, const std::vector<std::pair<int, int>>& occupiedPositions)
+void Client::handleButton3Click()
 {
-    int randomRow, randomCol;
-
-    // Haz una copia de la variable ocupada para que puedas modificarla
-    std::vector<std::pair<int, int>> occupiedCopy = occupiedPositions;
-
-    do {
-        randomRow = QRandomGenerator::global()->bounded(10);
-        randomCol = QRandomGenerator::global()->bounded(10);
-    } while (labels[randomRow][randomCol]->styleSheet() != "background-color: white; border: 1px solid black;" ||
-             std::find(occupiedCopy.begin(), occupiedCopy.end(), std::make_pair(randomRow, randomCol)) != occupiedCopy.end());
-
-    if (color == "blue") {
-        labels[randomRow][randomCol]->setStyleSheet("background-color: blue; border: 1px solid black;");
-    } else if (color == "red") {
-        labels[randomRow][randomCol]->setStyleSheet("background-color: red; border: 1px solid black;");
-    } else if (color == "yellow") {
-        labels[randomRow][randomCol]->setStyleSheet("background-color: yellow; border: 1px solid black;");
-    }
-
-    // Agregar la posición ocupada a la copia
-    occupiedCopy.push_back({randomRow, randomCol});
+    findShortestPath();
 }
 
+void Client::placePlayerSquares()
+{
+    std::vector<std::pair<int, int>> occupiedPositions;
+
+    // Obtener la entrada del jugador para la ubicación de los cuadrados
+    for (int i = 0; i < 3; ++i) {
+        QString color;
+        bool validPlacement = false;
+        int row, col;
+
+        // Pedir al jugador que elija el color y la ubicación
+        while (!validPlacement) {
+            bool ok;
+            QStringList items = {"Blue", "Red", "Yellow"};
+            color = QInputDialog::getItem(nullptr, "Choose Square Color",
+                                          "Select the color for square " + QString::number(i + 1) + ":",
+                                          items, 0, false, &ok);
+
+            if (!ok) {
+                // El jugador canceló, salimos del bucle
+                break;
+            }
+
+            row = QInputDialog::getInt(nullptr, "Choose Square Location",
+                                       "Enter row (0-9) for square " + QString::number(i + 1) + ":",
+                                       0, 0, 9, 1, &ok);
+
+            if (!ok) {
+                // El jugador canceló, salimos del bucle
+                break;
+            }
+
+            col = QInputDialog::getInt(nullptr, "Choose Square Location",
+                                       "Enter column (0-9) for square " + QString::number(i + 1) + ":",
+                                       0, 0, 9, 1, &ok);
+
+            if (!ok) {
+                // El jugador canceló, salimos del bucle
+                break;
+            }
+
+            if ((row == 0 && col == 0) || (row == 9 && col == 9)) {
+                // Mostrar un mensaje de error en una ventana de diálogo
+                QMessageBox::warning(nullptr, "Invalid Placement",
+                                     "No puedes colocar un cuadro en el punto de entrada o salida.");
+            } else if (labels[row][col]->styleSheet() != "background-color: white; border: 1px solid black;") {
+                // Mostrar un mensaje de error en una ventana de diálogo
+                QMessageBox::warning(nullptr, "Invalid Placement",
+                                     "La posición seleccionada ya está ocupada por otro cuadro.");
+            } else {
+                validPlacement = true;
+            }
+        }
+
+        if (!validPlacement) {
+            qDebug() << "Colocación de cuadro cancelada por el jugador.";
+            break;
+        }
+
+        // Colocar el cuadro seleccionado
+        placeSquare(color, row, col);
+        occupiedPositions.push_back({row, col});
+    }
+}
+
+void Client::placeSquare(const QString &color, int row, int col)
+{
+    if (color.toLower() == "blue") {
+        setGridValue(row, col, 1);
+    } else if (color.toLower() == "red") {
+        setGridValue(row, col, 2);
+    } else if (color.toLower() == "yellow") {
+        setGridValue(row, col, 3);
+    }
+}
 
 bool Client::isValid(int row, int col) const
 {
@@ -144,9 +207,34 @@ bool Client::isValid(int row, int col) const
            labels[row][col]->styleSheet() == "background-color: white; border: 1px solid black;";
 }
 
+void Client::moveToGoal()
+{
+    if (currentRow == goalRow && currentCol == goalCol) {
+        timer->stop();
+        lifeLabel->setText("Life: " + QString::number(life));
+        return;
+    }
+
+    // Llamar a tu función findShortestPath para mover al objetivo
+    findShortestPath();
+
+    // Actualizar la interfaz de usuario después de cada movimiento
+    lifeLabel->setText("Life: " + QString::number(life));
+    QCoreApplication::processEvents();
+
+    if (life <= 0) {
+        // El juego termina si la vida llega a cero
+        timer->stop();
+        QMessageBox::information(nullptr, "Game Over", "Your life reached zero. Game over!");
+    }
+}
+
+
+// Resto de tu código
 
 void Client::findShortestPath()
 {
+    // Crear una cola para el recorrido en anchura
     std::queue<std::pair<int, int>> queue;
     std::vector<std::vector<int>> distance(10, std::vector<int>(10, -1));
     std::vector<std::vector<bool>> visited(10, std::vector<bool>(10, false));
@@ -181,26 +269,25 @@ void Client::findShortestPath()
             int newRow = row + dr[i];
             int newCol = col + dc[i];
 
+            // Verificar si la casilla es válida y no ha sido visitada
             if (isValid(newRow, newCol) && distance[newRow][newCol] == -1) {
                 queue.push({newRow, newCol});
                 distance[newRow][newCol] = distance[row][col] + 1;
-
-                // Actualizar el lifeLabel después de cada movimiento
-                lifeLabel->setText("Life: " + QString::number(life));
-                QCoreApplication::processEvents();
-                QEventLoop loop;
-                QTimer::singleShot(1000, &loop, &QEventLoop::quit);
-                loop.exec();
 
                 // Verificar si está cerca de un obstáculo y reducir la vida
                 if (isNearObstacle(newRow, newCol)) {
                     if (isRedSquare(newRow, newCol)) {
                         life -= 30; // Rojo
+                        qDebug() << life;
                     } else if (isYellowSquare(newRow, newCol)) {
                         life -= 25; // Amarillo
+                        qDebug() << life;
                     } else if (isBlueSquare(newRow, newCol)) {
                         life -= 20; // Azul
+                        qDebug() << life;
                     }
+                    lifeLabel->setText("Life: " + QString::number(life));
+                    qDebug() << lifeLabel;
                 }
             }
         }
@@ -212,17 +299,18 @@ void Client::findShortestPath()
 
     while (row != startRow || col != startCol) {
         int minDistance = distance[row][col];
-        int bestRow = -1;
-        int bestCol = -1;
 
         // Movimientos posibles (arriba, abajo, izquierda, derecha)
         int dr[] = {-1, 1, 0, 0};
         int dc[] = {0, 0, -1, 1};
+        int bestRow = -1;
+        int bestCol = -1;
 
         for (int i = 0; i < 4; i++) {
             int newRow = row + dr[i];
             int newCol = col + dc[i];
 
+            // Verificar si la casilla es válida y tiene una distancia menor
             if (isValid(newRow, newCol) && distance[newRow][newCol] < minDistance) {
                 minDistance = distance[newRow][newCol];
                 bestRow = newRow;
@@ -234,26 +322,13 @@ void Client::findShortestPath()
         row = bestRow;
         col = bestCol;
         labels[row][col]->setStyleSheet("background-color: green; border: 1px solid black;");
-
-        // Verificar si está adyacente a un cuadro amarillo, rojo o azul
-        if (isNearColoredSquare(row, col)) {
-            if (isRedSquare(row, col)) {
-                life -= 30; // Rojo
-            } else if (isYellowSquare(row, col)) {
-                life -= 25; // Amarillo
-            } else if (isBlueSquare(row, col)) {
-                life -= 20; // Azul
-            }
-        }
-
-        // Actualizar el lifeLabel después de cada movimiento
-        lifeLabel->setText("Life: " + QString::number(life));
-        QCoreApplication::processEvents();
         QEventLoop loop;
         QTimer::singleShot(1000, &loop, &QEventLoop::quit);
         loop.exec();
     }
 }
+
+
 
 bool Client::isNearColoredSquare(int row, int col)
 {
@@ -300,9 +375,4 @@ bool Client::isBlueSquare(int row, int col)
 void Client::handleButton2Click()
 {
     // Logic for handling Button 2 click
-}
-
-void Client::handleButton3Click()
-{
-    // Logic for handling Button 3 click
 }
