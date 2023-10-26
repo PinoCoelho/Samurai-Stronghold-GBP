@@ -38,6 +38,8 @@ private slots:
     //void startGreenSquareMovement();
     //bool isNearPlayerSquare(int row, int col);
     void moveToGoal();
+    void moveRandomSquares();
+    bool isColoredSquare(int row, int col);
 
 private:
     QTcpSocket *tcpSocket;
@@ -51,6 +53,10 @@ private:
     int goalCol;
     int life;
     QTimer *timer;
+    int randomIndex;
+    int greenMoves;
+    bool occupiedPositions[10][10];
+
 
 };
 
