@@ -73,6 +73,29 @@ AlgoritmoGenético Crossover(const AlgoritmoGenético& parent1, const AlgoritmoG
     
     return child;
 }
+
+void Mutacion(AlgoritmoGenético& samurai) {
+    double mutationRate = 100;
+
+    double random = static_cast<double>(std::rand()) / RAND_MAX;
+
+    if(random < mutationRate) {
+        samurai.age += std::rand() % 10 - 5;
+        samurai.emotionalIntelligence += (std::rand() % 3) - 1;
+        samurai.physicalCondition += std::rand() % 10 - 5;
+        samurai.upperBodyStrength += (std::rand() % 3) - 1;
+        samurai.lowerBodyStrength += (std::rand() % 3) - 1;
+    }
+}
+
+void MutateChildren(std::vector<AlgoritmoGenético>& children) {
+    std:srand(std::time(0));
+
+    for(AlgoritmoGenético& child: children) {
+        Mutacion(child);
+    }
+}
+
 int cruce(){
     AlgoritmoGenético parent1;
     AlgoritmoGenético parent2;
@@ -114,7 +137,21 @@ int cruce(){
         << child.lowerBodyStrength << " - Resistance: " 
         << child.endurance << std::endl;
     }
+    MutateChildren(offspring);
+    for(const AlgoritmoGenético& child : offspring) {
+        std::cout << "Descendiente - ID: " 
+        << child.id << " - Edad: " 
+        << child.age << " - SP: " 
+        << child.survivalProbability << " - EG: " 
+        << child.expectedGenerations << " - EI: " 
+        << child.emotionalIntelligence << " - PC: "
+        << child.physicalCondition << " - U: " 
+        << child.upperBodyStrength << " - L: " 
+        << child.lowerBodyStrength << " - Resistance: " 
+        << child.endurance << std::endl;
+    }
 }
+
 int main() {
     int populationSize = 20;
 
