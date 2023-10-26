@@ -54,8 +54,69 @@ std::vector<AlgoritmoGenético> Selection(const std::vector<AlgoritmoGenético>&
     return selectedSamurais;
 }
 
-int main() {
+AlgoritmoGenético Crossover(const AlgoritmoGenético& parent1, const AlgoritmoGenético& parent2) {
+    AlgoritmoGenético child;
+    
+    child.id = 
+    child.age = (parent1.age + parent2.age) / 2;
+    child.survivalProbability = (parent1.survivalProbability + parent2.survivalProbability) / 2;
+    child.expectedGenerations = (parent1.expectedGenerations + parent2.expectedGenerations) - 1;
+    child.emotionalIntelligence = (parent1.emotionalIntelligence + parent2.emotionalIntelligence) / 2;
+    child.physicalCondition = (parent1.physicalCondition + parent2.physicalCondition) / 2;
+    child.upperBodyStrength = (parent1.upperBodyStrength + parent2.upperBodyStrength) / 2;
+    child.lowerBodyStrength = (parent1.lowerBodyStrength + parent2.lowerBodyStrength) / 2;
+    child.endurance = child.age +
+                      child.emotionalIntelligence +
+                      child.physicalCondition +
+                      child.upperBodyStrength +
+                      child.lowerBodyStrength;
+    
+    return child;
+}
+int cruce(){
+    AlgoritmoGenético parent1;
+    AlgoritmoGenético parent2;
     int populationSize = 5;
+    std::vector<AlgoritmoGenético> population = InitializePopulation(populationSize);
+    std::vector<AlgoritmoGenético> selectedPopulation = Selection(population);
+    std::vector<AlgoritmoGenético> offspring;
+    int maxID = -1;
+
+    for (const AlgoritmoGenético& samurai : selectedPopulation) {
+        if(samurai.id > maxID) {
+            maxID = samurai.id;
+        }
+    }
+    if (selectedPopulation.size() >= 2) {
+        for (size_t i = 0; i < selectedPopulation.size(); i += 2) {
+            AlgoritmoGenético parent1 = selectedPopulation[i];
+            AlgoritmoGenético parent2 = selectedPopulation[i + 1];
+
+            AlgoritmoGenético child = Crossover(parent1, parent2);
+
+            child.id = maxID + 1;
+            maxID++;
+
+            offspring.push_back(child);
+        }
+    } else {
+        std::cout << "No hay suficientes samurais seleccionados para el cruzamiento. " << std::endl;
+    }
+    for(const AlgoritmoGenético& child : offspring) {
+        std::cout << "Descendiente - ID: " 
+        << child.id << " - Edad: " 
+        << child.age << " - SP: " 
+        << child.survivalProbability << " - EG: " 
+        << child.expectedGenerations << " - EI: " 
+        << child.emotionalIntelligence << " - PC: "
+        << child.physicalCondition << " - U: " 
+        << child.upperBodyStrength << " - L: " 
+        << child.lowerBodyStrength << " - Resistance: " 
+        << child.endurance << std::endl;
+    }
+}
+int main() {
+    int populationSize = 20;
 
     std::vector<AlgoritmoGenético> population = InitializePopulation(populationSize);
 
@@ -85,4 +146,5 @@ int main() {
         << samurai.lowerBodyStrength << " - Resistance: " 
         << samurai.endurance << std::endl;
     }
+    cruce();
 }
