@@ -3,44 +3,23 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
-#include "gnuplot-iostream.h"
+#include <numeric>
 
 
-int main(){
-    Gnuplot gp;
-    // Datos de ejemplo
-    std::vector<int> generaciones = {1, 2, 3, 4, 5};
-    std::vector<double> mejorAptitud = {90, 92, 95, 97, 99};
-    std::vector<double> aptitudMedia = {80, 85, 90, 93, 96};
-
-    gp << "set title 'Avance Generacional'" << std::endl;
-    gp << "set xlabel 'Generación'" << std::endl;
-    gp << "set ylabel 'Aptitud'" << std::endl;
-    gp << "plot '-' with lines title 'Mejor Aptitud', '-' with lines title 'Aptitud Media'" << std::endl;
-    gp.send1d(std::make_tuple(generaciones, mejorAptitud));
-    gp.send1d(std::make_tuple(generaciones, aptitudMedia));
-
-    // Espera hasta que el usuario cierre la ventana del gráfico
-    std::cout << "Presiona enter para salir..." << std::endl;
-    std::cin.get();
-
-    return 0;
-}
-
-
+//Atributos de este algoritmo genético
 struct AlgoritmoGenético
 {
-    int id;
-    int age;
-    double survivalProbability;
-    int expectedGenerations;
-    double emotionalIntelligence;
-    double physicalCondition;
-    int upperBodyStrength;
-    int lowerBodyStrength;
-    double endurance;
+    int id; //id del samurái
+    int age; //Edad del samurái
+    double survivalProbability; //Probabilidad de supervivencia del samurái
+    int expectedGenerations; //Generación que se espera que sobreviva hasta
+    double emotionalIntelligence; //Inteligencia emocional del samurái
+    double physicalCondition; //Condición física del samurái
+    int upperBodyStrength; //Fuerza de la parte superior del cuerpo del samurái
+    int lowerBodyStrength; //FUerza de la parte inferior del cuerpo del samurái
+    double endurance; //Resistencia del samurái
 };
-
+//Vector que guardará a la primera población de samurái
 std::vector<AlgoritmoGenético> InitializePopulation(int populationSize){
     std::vector<AlgoritmoGenético> population;
 
@@ -66,7 +45,7 @@ std::vector<AlgoritmoGenético> InitializePopulation(int populationSize){
 
     return population;
 }
-
+//Vector que guardará a los samurái elegidos por selección natural
 std::vector<AlgoritmoGenético> Selection(const std::vector<AlgoritmoGenético>& population) {
     std::vector<AlgoritmoGenético> selectedSamurais;
 
@@ -78,7 +57,7 @@ std::vector<AlgoritmoGenético> Selection(const std::vector<AlgoritmoGenético>&
 
     return selectedSamurais;
 }
-
+//Algoritmo para el cruce de samuráis
 AlgoritmoGenético Crossover(const AlgoritmoGenético& parent1, const AlgoritmoGenético& parent2) {
     AlgoritmoGenético child;
     
@@ -98,7 +77,7 @@ AlgoritmoGenético Crossover(const AlgoritmoGenético& parent1, const AlgoritmoG
     
     return child;
 }
-
+//Función para mutar los genes
 void Mutacion(AlgoritmoGenético& samurai) {
     double mutationRate = 0.1;
 
@@ -112,7 +91,7 @@ void Mutacion(AlgoritmoGenético& samurai) {
         samurai.lowerBodyStrength += (std::rand() % 3) - 1;
     }
 }
-
+//Función para mutar los genes de los niños samuráis
 void MutateChildren(std::vector<AlgoritmoGenético>& children) {
     std:srand(std::time(0));
 
@@ -120,7 +99,25 @@ void MutateChildren(std::vector<AlgoritmoGenético>& children) {
         Mutacion(child);
     }
 }
-
+int avance1(const std::vector<AlgoritmoGenético>& samurais){
+    std::vector<double> resistenciaSamurais;
+    for(const AlgoritmoGenético& samurai : samurais) {
+        double resistencia = samurai.endurance;
+        resistenciaSamurais.push_back(resistencia);
+    }
+    double promedioResistenciaSamurais = std::accumulate(resistenciaSamurais.begin(), resistenciaSamurais.end(), 0.0) / resistenciaSamurais.size();
+    std::cout << "Promedio Resistencia Samurais: " << promedioResistenciaSamurais << std::endl;
+}
+int avance2(const std::vector<AlgoritmoGenético>& children) {
+    std::vector<double> resistenciaNinos;
+    for(const AlgoritmoGenético& nino : children) {
+        double resistencia = nino.endurance;
+        resistenciaNinos.push_back(resistencia);
+    }   
+    double promedioResistenciaNinos = std::accumulate(resistenciaNinos.begin(), resistenciaNinos.end(), 0.0) / resistenciaNinos.size();
+    std::cout << "Promedio Resistencia Niños: " << promedioResistenciaNinos << std::endl;
+}
+//Función para generar la nueva generación
 int cruce(){
     AlgoritmoGenético parent1;
     AlgoritmoGenético parent2;
@@ -175,6 +172,8 @@ int cruce(){
         << child.lowerBodyStrength << " - Resistance: " 
         << child.endurance << std::endl;
     }
+    avance1(population);
+    avance2(offspring);
 }
 
 int main() {
