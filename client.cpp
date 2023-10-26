@@ -1,5 +1,6 @@
 // client.cpp
 #include "client.h"
+#include "algoritmogenetico.h"
 #include <QDebug>
 #include <QToolBar>
 #include <QAction>
@@ -47,6 +48,10 @@ Client::Client(QObject *parent) : QObject(parent)
     QAction *button2 = toolBar->addAction("Statistics");
     QAction *button3 = toolBar->addAction("Start");
 
+    timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &Client::updateElapsedTime);
+
+
     connect(button1, &QAction::triggered, this, &Client::handleButton1Click);
     connect(button2, &QAction::triggered, this, &Client::handleButton2Click);
     connect(button3, &QAction::triggered, this, &Client::handleButton3Click);
@@ -74,7 +79,7 @@ Client::Client(QObject *parent) : QObject(parent)
 void Client::connectToServer(QString host, int port)
 {
     tcpSocket->connectToHost(host, port);
-    qDebug() << "Connected to the server";
+    qDebug() << "Se conectó al cliente";
 }
 
 void Client::receiveGridData()
@@ -137,8 +142,20 @@ void Client::handleButton1Click()
 
 void Client::handleButton3Click()
 {
+    startTime = QTime::currentTime();
+    timer->start(1000);
     moveToGoal();
 }
+
+void Client::updateElapsedTime() {
+    QTime currentTime = QTime::currentTime();
+    int elapsedSeconds = startTime.secsTo(currentTime);
+    // Muestra el tiempo en la etiqueta o ventana de diálogo
+    // Por ejemplo, puedes mostrarlo en la etiqueta lifeLabel
+    lifeLabel->setText("Life: " + QString::number(life) + " - Time: " + QString::number(elapsedSeconds) + "s");
+}
+
+
 
 void Client::placePlayerSquares()
 {
@@ -231,6 +248,11 @@ void Client::moveToGoal()
 {
     if (currentRow == goalRow && currentCol == goalCol) {
         timer->stop();
+        int elapsedSeconds = startTime.secsTo(QTime::currentTime());
+
+        // Muestra el tiempo en una ventana de diálogo
+        QString timeMessage = "Time taken to reach the goal: " + QString::number(elapsedSeconds) + "s";
+        QMessageBox::information(nullptr, "Goal Reached", timeMessage);
         lifeLabel->setText("Life: " + QString::number(life));
         return;
     }
@@ -385,6 +407,15 @@ void Client::findShortestPath()
 // Función para mover cuadros amarillo, azul y rojo de forma aleatoria
 void Client::moveRandomSquares()
 {
+
+    timer->stop();
+    int elapsedSeconds = startTime.secsTo(QTime::currentTime());
+
+    // Muestra el tiempo en una ventana de diálogo
+    QString timeMessage = "Time taken to reach the goal: " + QString::number(elapsedSeconds) + "s";
+    QMessageBox::information(nullptr, "Goal Reached", timeMessage);
+    lifeLabel->setText(QString::number(life));
+
     std::vector<std::pair<int, int>> occupiedPositions;
 
     // Elimina los cuadros amarillo, azul y rojo existentes
@@ -502,5 +533,22 @@ bool Client::isBlueSquare(int row, int col)
 
 void Client::handleButton2Click()
 {
-    // Logic for handling Button 2 click
+    // Crear una instancia del objeto AlgoritmoGenetico o llamar a la función que necesitas
+    AlgoritmoGenético algoritmo;
+
+    // Llamar a la función generador() desde algoritmogenetico.cpp
+    //int populationSize = 20;
+    generador();
+
+    int elapsedSeconds = startTime.secsTo(QTime::currentTime());
+
+    // Muestra el tiempo en una ventana de diálogo
+    QString timeMessage = "Tiempo que le tomó al samurai llegar: " + QString::number(elapsedSeconds) + "s";
+    QMessageBox::information(nullptr, "Información del tiempo", timeMessage);
+
+    // Puedes mostrar los resultados en una ventana de diálogo, por ejemplo, usando QMessageBox
+    QMessageBox messageBox;
+    messageBox.setText("Resultados del algoritmo genético");
+        messageBox.exec();
 }
+

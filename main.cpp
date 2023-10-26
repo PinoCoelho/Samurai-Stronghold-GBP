@@ -1,6 +1,7 @@
 #include <QApplication>
 #include "server.h"
 #include "client.h"
+#include "algoritmogenetico.h"
 
 int main(int argc, char *argv[])
 {
@@ -9,6 +10,9 @@ int main(int argc, char *argv[])
     Server server;
 
     Client client;
+
+    AlgoritmoGenético generador;
+
 
 
     client.connectToServer("localhost", 12345);

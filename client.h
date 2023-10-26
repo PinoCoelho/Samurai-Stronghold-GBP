@@ -1,12 +1,14 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "algoritmogenetico.h"
 #include <QObject>
 #include <QTcpSocket>
 #include <QDataStream>
 #include <QWidget>
 #include <QGridLayout>
 #include <QLabel>
+#include <QTime>
 
 class Client : public QObject
 {
@@ -41,6 +43,7 @@ private slots:
     void moveToGoal();
     void moveRandomSquares();
     bool isColoredSquare(int row, int col);
+    void updateElapsedTime();
 
 private:
     QTcpSocket *tcpSocket;
@@ -59,6 +62,9 @@ private:
     bool occupiedPositions[10][10];
     QLabel *koban;
     int score = 100;
+    std::vector<AlgoritmoGenético> population;
+    QTime startTime;
+
 
 
 };
